@@ -27,27 +27,35 @@ public class UserControllerTest {
 
     @Test
     void emailValidationTest() {
+        user.setEmail(null);
+        makeFailedVaildationAssertions();
         user.setEmail("");
-        assertThrows(ValidationException.class, () -> userController.create(user));
-        assertEquals(1, userController.findAll().size());
+        makeFailedVaildationAssertions();
+        user.setEmail("       ");
+        makeFailedVaildationAssertions();
         user.setEmail("danila-bagrov");
-        assertThrows(ValidationException.class, () -> userController.create(user));
-        assertEquals(1, userController.findAll().size());
+        makeFailedVaildationAssertions();
     }
 
     @Test
     void loginValidationTest() {
+        user.setLogin(null);
+        makeFailedVaildationAssertions();
         user.setLogin("");
-        assertThrows(ValidationException.class, () -> userController.create(user));
-        assertEquals(1, userController.findAll().size());
+        makeFailedVaildationAssertions();
+        user.setLogin("       ");
+        makeFailedVaildationAssertions();
         user.setLogin("l o g i n");
-        assertThrows(ValidationException.class, () -> userController.create(user));
-        assertEquals(1, userController.findAll().size());
+        makeFailedVaildationAssertions();
     }
 
     @Test
     void birthdayValidationTest() {
         user.setBirthday(LocalDate.now().plusDays(1));
+        makeFailedVaildationAssertions();
+    }
+
+    private void makeFailedVaildationAssertions() {
         assertThrows(ValidationException.class, () -> userController.create(user));
         assertEquals(1, userController.findAll().size());
     }

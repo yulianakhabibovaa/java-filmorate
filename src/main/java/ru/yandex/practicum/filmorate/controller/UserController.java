@@ -58,18 +58,15 @@ public class UserController {
         if (users.containsKey(newUser.getId())) {
             User oldUser = users.get(newUser.getId());
 
-            if (newUser.getName() != null) {
+            if (newUser.getName() == null) {
+                oldUser.setName(newUser.getLogin());
+            } else {
                 oldUser.setName(newUser.getName());
             }
-            if (newUser.getLogin() != null) {
-                oldUser.setLogin(newUser.getLogin());
-            }
-            if (newUser.getEmail() != null) {
-                oldUser.setEmail(newUser.getEmail());
-            }
-            if (newUser.getBirthday() != null) {
-                oldUser.setBirthday((newUser.getBirthday()));
-            }
+
+            oldUser.setLogin(newUser.getLogin());
+            oldUser.setEmail(newUser.getEmail());
+            oldUser.setBirthday((newUser.getBirthday()));
 
             log.debug("пользователь был обновлен: {}", oldUser);
             return oldUser;
@@ -89,7 +86,7 @@ public class UserController {
             throw new ValidationException("Логин не должен быть пустым и содержать пробелы");
         }
 
-        if (user.getBirthday().isAfter(LocalDate.now())) {
+        if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Дата рождения не прошла валидацию: {}", user.getBirthday());
             throw new ValidationException("Укажите правильно дату рождения");
         }

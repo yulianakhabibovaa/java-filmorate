@@ -35,22 +35,31 @@ class FilmControllerTest {
     @Test
     void descriptionValidationTest() {
         film.setDescription("оченьдлинноеописание".repeat(11));
-        assertThrows(ValidationException.class, () -> filmController.create(film));
-        assertEquals(1, filmController.findAll().size());
+        makeFailedValidationAssertions();
+        film.setDescription("");
+        makeFailedValidationAssertions();
+        film.setDescription(null);
+        makeFailedValidationAssertions();
     }
 
     @Test
     void dateValidationTest() {
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
-        assertThrows(ValidationException.class, () -> filmController.create(film));
-        assertEquals(1, filmController.findAll().size());
+        makeFailedValidationAssertions();
+        film.setReleaseDate(null);
+        makeFailedValidationAssertions();
     }
 
     @Test
     void durationValidationTest() {
         film.setDuration(0);
+        makeFailedValidationAssertions();
+        film.setDuration(null);
+        makeFailedValidationAssertions();
+    }
+
+    private void makeFailedValidationAssertions() {
         assertThrows(ValidationException.class, () -> filmController.create(film));
         assertEquals(1, filmController.findAll().size());
     }
-
 }
