@@ -1,94 +1,63 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserController {
-    private final Map<Long, User> users = new HashMap<>();
+
+    private final UserService userService;
 
     @GetMapping
-    public Collection<User> findAll() {
-        return users.values();
+    public ResponseEntity<Collection<User>> findAll() {
+        return ResponseEntity.ofNullable(userService.getAllUsers());
     }
 
     @PostMapping
-    public User create(@RequestBody User user) {
-
-        validate(user);
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
-        }
-
-        user.setId(getNextId());
-        users.put(user.getId(), user);
-        log.debug("был создан пользователь: " + user);
-        return user;
-    }
-
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-
-        return ++currentMaxId;
+    public ResponseEntity<User> create(@RequestBody User user) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(user));
     }
 
     @PutMapping
-    public User update(@RequestBody User newUser) {
-
-        if (newUser.getId() == null) {
-            log.warn("Не был указан Id пользователя");
-            throw new ValidationException("Id должен быть указан");
-        }
-
-        validate(newUser);
-        if (users.containsKey(newUser.getId())) {
-            User oldUser = users.get(newUser.getId());
-
-            if (newUser.getName() == null) {
-                oldUser.setName(newUser.getLogin());
-            } else {
-                oldUser.setName(newUser.getName());
-            }
-
-            oldUser.setLogin(newUser.getLogin());
-            oldUser.setEmail(newUser.getEmail());
-            oldUser.setBirthday((newUser.getBirthday()));
-
-            log.debug("пользователь был обновлен: {}", oldUser);
-            return oldUser;
-        }
-        log.warn("Пользователь с таким Id " + newUser.getId() + " не найден");
-        throw new NotFoundException("Пользователь с таким Id " + newUser.getId() + " не найден");
+    public ResponseEntity<User> update(@RequestBody User user) {
+        return ResponseEntity.ofNullable(userService.updateUser(user));
     }
 
-    private void validate(User user) {
-        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
-            log.warn("Имейл не прошел валидацию: {}", user.getEmail());
-            throw new ValidationException("Имейл должен быть указан и начинаться с @");
-        }
+    @GetMapping("/{userId}/friends")
+    public ResponseEntity<Collection<User>> getFriends(@PathVariable Long userId) {
+        return ResponseEntity.ofNullable(userService.getFriends(userId));
+    }
 
-        if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-            log.warn("Логин не прошел валидацию: {}", user.getLogin());
-            throw new ValidationException("Логин не должен быть пустым и содержать пробелы");
-        }
+    @PutMapping("/{userId}/friends/{friendId}")
+    public void addFriend(@PathVariable Long userId, @PathVariable Long friendId) {
+        userService.addFriend(userId, friendId);
+    }
 
-        if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Дата рождения не прошла валидацию: {}", user.getBirthday());
-            throw new ValidationException("Укажите правильно дату рождения");
-        }
+    @DeleteMapping("/{userId}/friends/{friendId}")
+    public void removeFriend(@PathVariable Long userId, @PathVariable Long friendId) {
+        userService.removeFriend(userId, friendId);
+    }
+
+    @GetMapping("/{userId}/friends/common/{otherUserId}")
+    public ResponseEntity<Set<User>> getCommonFriends(@PathVariable Long userId, @PathVariable Long otherUserId) {
+        return ResponseEntity.ofNullable(userService.getCommonFriends(userId, otherUserId));
     }
 }
