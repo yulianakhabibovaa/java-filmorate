@@ -51,7 +51,6 @@ public class FilmService {
         userStorage.get(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
         film.getLikes().add(userId);
-        filmStorage.update(film);
     }
 
     public void removeLike(Long filmId, Long userId) {
@@ -59,7 +58,6 @@ public class FilmService {
         userStorage.get(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
         film.getLikes().remove(userId);
-        filmStorage.update(film);
     }
 
     public Collection<Film> getTopFilms(int count) {
