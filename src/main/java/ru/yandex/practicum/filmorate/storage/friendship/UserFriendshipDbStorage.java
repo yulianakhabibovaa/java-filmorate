@@ -2,11 +2,8 @@ package ru.yandex.practicum.filmorate.storage.friendship;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.mapper.UserMapper;
 
@@ -34,14 +31,7 @@ public class UserFriendshipDbStorage implements UserFriendshipStorage {
 
     @Override
     public void addFriend(Long userId, Long friendId) {
-        try {
-            jdbcTemplate.update(INSERT_SQL_QUERY, userId, friendId);
-        } catch (DuplicateKeyException e) {
-            log.warn("Пользователь {} уже добавил в друзья пользователя {}", userId, friendId);
-        } catch (DataIntegrityViolationException e) {
-            log.error("Попытка подружить несуществующих пользователей: {}", e.getMessage());
-            throw new NotFoundException("Одного из указанных пользователей не существует");
-        }
+        jdbcTemplate.update(INSERT_SQL_QUERY, userId, friendId);
     }
 
     @Override

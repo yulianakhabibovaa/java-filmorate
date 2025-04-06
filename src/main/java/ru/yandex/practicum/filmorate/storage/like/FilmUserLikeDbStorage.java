@@ -2,11 +2,8 @@ package ru.yandex.practicum.filmorate.storage.like;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.mapper.FilmMapper;
 
@@ -34,14 +31,7 @@ public class FilmUserLikeDbStorage implements FilmUserLikeStorage {
 
     @Override
     public void addLike(Long filmId, Long userId) {
-        try {
-            jdbcTemplate.update(INSERT_SQL_QUERY, filmId, userId);
-        } catch (DuplicateKeyException e) {
-            log.warn("Пользователь {} уже поставил лайк фильму {}", userId, filmId);
-        } catch (DataIntegrityViolationException e) {
-            log.error("Попытка поставить лайк от несуществующего пользователя или фильма: {}", e.getMessage());
-            throw new NotFoundException("Указанного фильма или пользователя не существует");
-        }
+        jdbcTemplate.update(INSERT_SQL_QUERY, filmId, userId);
     }
 
     @Override

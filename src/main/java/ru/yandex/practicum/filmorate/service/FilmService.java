@@ -19,7 +19,9 @@ import ru.yandex.practicum.filmorate.storage.rating.MpaRatingStorage;
 import ru.yandex.practicum.filmorate.validation.FilmValidator;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -93,7 +95,17 @@ public class FilmService {
     }
 
     private void setFilmGenres(Collection<FilmDto> films) {
-        films.forEach(this::setFilmGenres);
+        if (films == null || films.isEmpty()) {
+            return;
+        }
+
+        List<Long> filmIds = films.stream()
+                .map(FilmDto::getId)
+                .toList();
+        Map<Long, Collection<Genre>> genresByFilmId = genreStorage.getGenresForFilms(filmIds);
+        for (FilmDto film : films) {
+            film.setGenres(genresByFilmId.getOrDefault(film.getId(), Collections.emptyList()));
+        }
     }
 
     private void validateMpaRating(Integer mpaId) {

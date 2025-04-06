@@ -8,7 +8,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.mapper.FilmMapper;
 
@@ -77,11 +76,6 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
 
         Long id = keyHolder.getKeyAs(Long.class);
-        if (id == null) {
-            log.error("Не удалось сохранить фильм {}", film);
-            throw new InternalServerException("Не удалось сохранить фильм, повторите позднее");
-        }
-
         return get(id).orElseThrow();
     }
 

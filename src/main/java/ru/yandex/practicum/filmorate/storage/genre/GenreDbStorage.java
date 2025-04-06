@@ -11,8 +11,11 @@ import ru.yandex.practicum.filmorate.storage.mapper.GenreMapper;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,6 +48,34 @@ public class GenreDbStorage implements GenreStorage {
     @Override
     public Collection<Genre> getFilmGenres(Long filmId) {
         return jdbcTemplate.query(SELECT_GENRES_BY_FILM_ID, new GenreMapper(), filmId);
+    }
+
+    @Override
+    public Map<Long, Collection<Genre>> getGenresForFilms(Collection<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        String query = "SELECT film_genres.film_id, genres.id AS genre_id, genres.name AS genre_name " +
+                "FROM film_genres " +
+                "JOIN genres ON film_genres.genre_id = genres.id " +
+                "WHERE film_genres.film_id IN (" +
+                String.join(",", Collections.nCopies(filmIds.size(), "?")) + ")";
+
+        Map<Long, Collection<Genre>> result = new HashMap<>();
+
+        jdbcTemplate.query(query, rs -> {
+            Long filmId = rs.getLong("film_id");
+            Genre genre = new Genre(
+                    rs.getInt("genre_id"),
+                    rs.getString("genre_name")
+            );
+
+            result.computeIfAbsent(filmId, k -> new ArrayList<>())
+                    .add(genre);
+        }, filmIds.toArray());
+
+        return result;
     }
 
     @Override

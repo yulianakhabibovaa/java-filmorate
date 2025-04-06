@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.InternalServerException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.mapper.UserMapper;
@@ -56,11 +55,6 @@ public class UserDbStorage implements UserStorage {
         }, keyHolder);
 
         Long id = keyHolder.getKeyAs(Long.class);
-        if (id == null) {
-            log.error("Не удалось создать пользователя {}", user);
-            throw new InternalServerException("Не удалось создать пользователя, повторите позднее");
-        }
-
         return get(id).orElseThrow();
     }
 

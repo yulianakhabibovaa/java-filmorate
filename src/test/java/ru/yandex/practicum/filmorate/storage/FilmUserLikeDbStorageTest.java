@@ -1,4 +1,5 @@
 package ru.yandex.practicum.filmorate.storage;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -7,8 +8,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friendship.UserFriendshipDbStorage;
 import ru.yandex.practicum.filmorate.storage.mapper.UserMapper;
@@ -16,12 +15,12 @@ import ru.yandex.practicum.filmorate.storage.mapper.UserMapper;
 import java.time.LocalDate;
 import java.util.Collection;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @JdbcTest
 @AutoConfigureTestDatabase
 @Import({UserFriendshipDbStorage.class, UserMapper.class})
-@Transactional
 class FilmUserLikeDbStorageTest {
 
     @Autowired
@@ -70,14 +69,6 @@ class FilmUserLikeDbStorageTest {
                 .hasSize(1)
                 .extracting(User::getId)
                 .containsExactly(user2);
-    }
-
-    @Test
-    void addFriend_shouldThrowOnInvalidUser() {
-        assertThatThrownBy(() -> friendshipStorage.addFriend(999L, user2))
-                .isInstanceOf(NotFoundException.class);
-        assertThatThrownBy(() -> friendshipStorage.addFriend(user1, 999L))
-                .isInstanceOf(NotFoundException.class);
     }
 
     @Test

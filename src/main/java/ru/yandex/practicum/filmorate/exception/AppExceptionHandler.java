@@ -20,12 +20,6 @@ public class AppExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(e.getMessage()));
     }
 
-    @ExceptionHandler(InternalServerException.class)
-    public ResponseEntity<ErrorResponse> handleServerError(InternalServerException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(e.getMessage()));
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllExceptions(Exception e) {
         log.error("Возникла непредвиденная ошибка", e);
