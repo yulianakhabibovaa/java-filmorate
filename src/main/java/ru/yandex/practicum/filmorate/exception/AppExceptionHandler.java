@@ -24,6 +24,6 @@ public class AppExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAllExceptions(Exception e) {
         log.error("Возникла непредвиденная ошибка", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("Возникла непредвиденная ошибка , попробуйте позже"));
+                .body(new ErrorResponse("Возникла непредвиденная ошибка, попробуйте позже"));
     }
 }

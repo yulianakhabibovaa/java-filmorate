@@ -16,7 +16,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.Set;
 
 @Slf4j
 @RestController
@@ -58,7 +57,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/friends/common/{otherUserId}")
-    public Set<User> getCommonFriends(@PathVariable Long userId, @PathVariable Long otherUserId) {
+    public Collection<User> getCommonFriends(@PathVariable Long userId, @PathVariable Long otherUserId) {
         return userService.getCommonFriends(userId, otherUserId);
     }
 }

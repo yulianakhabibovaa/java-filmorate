@@ -1,32 +1,24 @@
-package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate.validation;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UserValidationTest {
-    private UserService userService;
     private User user;
 
     @BeforeEach
     public void beforeEach() {
-        UserStorage userStorage = new InMemoryUserStorage();
-        userService = new UserService(userStorage);
         user = new User();
         user.setEmail("danila-bagrov@ya.ru");
         user.setLogin("danya853");
         user.setName("Dan4ik");
         user.setBirthday(LocalDate.of(1971, 12, 27));
-        userService.createUser(user);
     }
 
     @Test
@@ -60,7 +52,6 @@ class UserValidationTest {
     }
 
     private void makeFailedValidationAssertions() {
-        assertThrows(ValidationException.class, () -> userService.createUser(user));
-        assertEquals(1, userService.getAllUsers().size());
+        assertThrows(ValidationException.class, () -> UserValidator.validate(user));
     }
 }

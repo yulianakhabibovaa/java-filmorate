@@ -6,27 +6,25 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.friendship.UserFriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.validation.UserValidator;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
+    private final UserFriendshipStorage friendshipStorage;
 
     public Collection<User> getAllUsers() {
         return userStorage.getAll();
     }
 
     public User createUser(User user) {
-        validateUser(user);
+        UserValidator.validate(user);
         if (user.getName() == null) {
             user.setName(user.getLogin());
         }
@@ -41,7 +39,7 @@ public class UserService {
             throw new ValidationException("Id должен быть указан");
         }
 
-        validateUser(user);
+        UserValidator.validate(user);
         User updatedUser = userStorage.update(user);
         log.debug("пользователь был обновлен: {}", updatedUser);
         return updatedUser;
@@ -49,57 +47,30 @@ public class UserService {
 
     public Collection<User> getFriends(Long userId) {
         User user = userStorage.get(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        return user.getFriends().stream()
-                .map(userStorage::get)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+        return friendshipStorage.getFriends(user.getId());
     }
 
     public void addFriend(Long userId, Long friendId) {
-        User user = userStorage.get(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        User friend = userStorage.get(friendId).orElseThrow(() -> new UserNotFoundException(userId));
-
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
+        validateExistence(userId, friendId);
+        friendshipStorage.addFriend(userId, friendId);
     }
 
     public void removeFriend(Long userId, Long friendId) {
-        User user = userStorage.get(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        User friend = userStorage.get(friendId).orElseThrow(() -> new UserNotFoundException(userId));
-
-        user.getFriends().remove(friendId);
-        friend.getFriends().remove(userId);
+        validateExistence(userId, friendId);
+        friendshipStorage.removeFriend(userId, friendId);
     }
 
-    public Set<User> getCommonFriends(Long userId, Long otherUserId) {
-        User user = userStorage.get(userId).orElseThrow(() -> new UserNotFoundException(userId));
-        User otherUser = userStorage.get(otherUserId).orElseThrow(() -> new UserNotFoundException(otherUserId));
-
-        Set<Long> commonFriends = new HashSet<>(user.getFriends());
-        commonFriends.retainAll(otherUser.getFriends());
-
-        return commonFriends.stream()
-                .map(userStorage::get)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+    public Collection<User> getCommonFriends(Long userId, Long otherUserId) {
+        validateExistence(userId, otherUserId);
+        return friendshipStorage.getMutualFriends(userId, otherUserId);
     }
 
-    private void validateUser(User user) {
-        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
-            log.warn("Имейл не прошел валидацию: {}", user.getEmail());
-            throw new ValidationException("Имейл должен быть указан и начинаться с @");
+    private void validateExistence(Long userId, Long otherUserId) {
+        if (userStorage.get(userId).isEmpty()) {
+            throw new UserNotFoundException(userId);
         }
-
-        if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-            log.warn("Логин не прошел валидацию: {}", user.getLogin());
-            throw new ValidationException("Логин не должен быть пустым и содержать пробелы");
-        }
-
-        if (user.getBirthday() == null || user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Дата рождения не прошла валидацию: {}", user.getBirthday());
-            throw new ValidationException("Укажите правильно дату рождения");
+        if (userStorage.get(otherUserId).isEmpty()) {
+            throw new UserNotFoundException(otherUserId);
         }
     }
 }
